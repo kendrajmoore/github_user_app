@@ -19,22 +19,19 @@ To get a local copy up and run, follow these simple steps:
 
 1. Install Rust if you haven't yet. You can find detailed instructions [here](https://www.rust-lang.org/tools/install)
 
-## Usage 
-
-To be added...
-
 ## Roadmap
 
-- [ ] Make project open source 
-- [ ] ...
+- [ ] Add more options to the menu
+- [ ] Add a simple front-end
+- [ ] Make the project open source
 
 ## Contributing 
 
 Contributions are an integral part of open-source community. To contribute:
 1. **Fork** the project
-2. **Create** your feature branch (`git checkout -b feature/AmazingFeature`)
-3. **Commit** your changes (`git commit -m 'Add some Amazing feature'`)
-4. **Push** to the branch (`git push origin feature/AmazingFeature`)
+2. **Create** your feature branch (`git checkout -b feature`)
+3. **Commit** your changes (`git commit -m 'Added some Amazing feature'`)
+4. **Push** to the branch (`git push origin feature`)
 5. **Open a pull request**
 
 ## License 
