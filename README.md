@@ -13,11 +13,34 @@ Build in Rust, the Github Command Line App lets you navigate through the world o
 
 ![built-with](https://img.shields.io/badge/Built%20with-Rust-green)
 
-## Getting Started 
 
-To get a local copy up and run, follow these simple steps:
+## Prerequisites
 
-1. Install Rust if you haven't yet. You can find detailed instructions [here](https://www.rust-lang.org/tools/install)
+1. **Git**: Ensure you have Git installed on your system to clone the repository. You can download it from [git-scm.com](https://git-scm.com/).
+2. **Rust and Cargo**: Make sure Rust and Cargo are installed. They are usually installed together via Rustup. You can get them from [rust-lang.org](https://www.rust-lang.org/learn/get-started).
+
+## Cloning the Repository
+
+1. **Clone the Repository**:
+Open a terminal or command prompt and run the following command:
+```bash
+git clone https://github.com/kendrajmoore/github_user_app
+```
+
+2. **Navigate to the Repository**
+```bash
+cd github_user_app
+```
+
+3. **Build Project**
+```bash
+cargo build
+```
+
+4. **Run Project**
+```bash
+cargo run
+```
 
 ## Roadmap
 
