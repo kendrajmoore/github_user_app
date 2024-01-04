@@ -1,7 +1,4 @@
-use github_user_app::FRAGMENT;
-use github_user_app::process_search_results;
-use github_user_app::Repository;
-use github_user_app::SearchResults;
+use github_user_app::{process_search_results, FRAGMENT, Repository, SearchResults};
 use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
 
 #[cfg(test)]

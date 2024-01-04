@@ -2,6 +2,8 @@ extern crate serde_json;
 use reqwest;
 use serde::Deserialize;
 use thiserror::Error;
+use reqwest::Error as ReqwestError;
+use serde_json::Error as SerdeJsonError;
 use tokio::time::{sleep, Duration};
 use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
 
@@ -11,11 +13,11 @@ pub const FRAGMENT: &AsciiSet = &CONTROLS.add(b'+').add(b'&').add(b'.').add(b'/'
 
 #[derive(Error, Debug)]
 pub enum MyError {
-    #[error("Network request failed")]
-    Network(#[from] reqwest::Error),
+    #[error("Network error: {0}")]
+    Network(#[from] ReqwestError),
 
-    #[error("Failed to parse JSON")]
-    Json(#[from] serde_json::Error),
+    #[error("Parsing error: {0}")]
+    Parse(#[from] SerdeJsonError),
 }
 
 #[derive(Deserialize, Debug)]
@@ -47,7 +49,7 @@ pub fn build_stars_search_url(stars: &str) -> String {
 }
 
 pub fn build_random_repos_url() -> String {
-    format!("{}/?q=stars:>=1&sort=updated&order=desc", BASE_URL)
+    format!("{}?q=stars:>=1&sort=updated&order=desc", BASE_URL)
 }
 
 pub fn process_search_results(search_results: SearchResults) -> Vec<String> {
@@ -59,7 +61,6 @@ pub fn process_search_results(search_results: SearchResults) -> Vec<String> {
 pub async fn fetch_repos(client: &reqwest::Client, url: &str) -> Result<SearchResults, MyError> {
     let response = client.get(url).header("User-Agent", "request").send().await?;
     let response_text = response.text().await?;
-
     serde_json::from_str(&response_text).map_err(MyError::Parse)
 }
 

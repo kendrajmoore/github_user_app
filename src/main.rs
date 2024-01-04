@@ -1,13 +1,10 @@
 use std::io;
-use github_user_app::build_language_search_url;
-use github_user_app::build_random_repos_url;
-use github_user_app::build_stars_search_url;
-use github_user_app::fetch_repos; 
-use github_user_app::process_search_results;
+use std::io::Write;
+use github_user_app::{build_language_search_url,build_random_repos_url, build_stars_search_url, fetch_repos, MyError, process_search_results};
 
 
 #[tokio::main]
-async fn main() -> Result<(), reqwest::Error> {
+async fn main() -> Result<(), MyError> {
     let client = reqwest::Client::new();
 
     loop {
@@ -56,12 +53,14 @@ async fn main() -> Result<(), reqwest::Error> {
 }
 
 fn get_user_input(prompt: &str) -> String {
-    println!("{}", prompt);
+    print!("{}", prompt);
+    io::stdout().flush().unwrap();  
+
     let mut input = String::new();
     io::stdin().read_line(&mut input).expect("Failed to read line");
-    input.trim().to_string()
-}
 
+    input.trim().to_lowercase()
+}
 
 fn display_results(results: &[String]) {
     for result in results {
