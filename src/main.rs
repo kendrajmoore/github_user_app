@@ -1,51 +1,9 @@
-use reqwest;
 use std::io;
-use serde::Deserialize;
-use rand::seq::SliceRandom;
-use tokio::time::{sleep, Duration};
-use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
-
-const BASE_URL: &str = "https://api.github.com/search/repositories";
-const FRAGMENT: &AsciiSet = &CONTROLS.add(b'+');
-
-
-#[derive(Deserialize, Debug)]
-struct Repository {
-    name: String,
-    html_url: String,
-    stargazers_count: u32,
-    language: Option<String>,
-}
-
-#[derive(Deserialize, Debug)]
-struct SearchResults {
-    items: Vec<Repository>,
-}
-
-fn build_language_search_url(language: &str) -> String {
-    format!(
-        "{}?q=language:{}&sort=stars&order=desc",
-        BASE_URL, utf8_percent_encode(language, FRAGMENT)
-    )
-}
-
-fn build_stars_search_url(stars: &str) -> String {
-    format!(
-        "{}?q=stars:>={}&sort=stars&order=desc",
-        BASE_URL, stars
-    )
-}
-
-fn build_random_repos_url() -> String {
-    format!("{}/?q=stars:>=1&sort=updated&order=desc", BASE_URL)
-}
-
-
-fn process_search_results(search_results: SearchResults) -> Vec<String> {
-    search_results.items.iter().enumerate().map(|(index, repo)| {
-        format!("{}. {} - {} stars. URL: {}", index + 1, repo.name, repo.stargazers_count, repo.html_url)
-    }).collect()
-}
+use github_user_app::build_language_search_url;
+use github_user_app::build_random_repos_url;
+use github_user_app::build_stars_search_url;
+use github_user_app::fetch_repos; 
+use github_user_app::process_search_results;
 
 
 #[tokio::main]
@@ -95,11 +53,6 @@ async fn main() -> Result<(), reqwest::Error> {
     }
 
     Ok(())
-}
-
-async fn fetch_repos(client: &reqwest::Client, url: &str) -> Result<SearchResults, reqwest::Error> {
-    let response = client.get(url).header("User-Agent", "request").send().await?;
-    response.json().await
 }
 
 fn get_user_input(prompt: &str) -> String {

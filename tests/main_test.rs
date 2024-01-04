@@ -1,8 +1,12 @@
+use github_user_app::FRAGMENT;
+use github_user_app::process_search_results;
+use github_user_app::Repository;
+use github_user_app::SearchResults;
+use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use super::FRAGMENT;
-
     const TEST_BASE_URL: &str = "https://api.github.com/search/repositories";
 
     fn build_language_search_url(language: &str) -> String {
