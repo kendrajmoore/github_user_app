@@ -3,8 +3,10 @@ use std::io;
 use serde::Deserialize;
 use rand::seq::SliceRandom;
 use tokio::time::{sleep, Duration};
-const FRAGMENT: &AsciiSet = &CONTROLS.add(b'+');
 use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
+
+const BASE_URL: &str = "https://api.github.com/search/repositories";
+const FRAGMENT: &AsciiSet = &CONTROLS.add(b'+');
 
 
 #[derive(Deserialize, Debug)]
@@ -19,6 +21,32 @@ struct Repository {
 struct SearchResults {
     items: Vec<Repository>,
 }
+
+fn build_language_search_url(language: &str) -> String {
+    format!(
+        "{}?q=language:{}&sort=stars&order=desc",
+        BASE_URL, utf8_percent_encode(language, FRAGMENT)
+    )
+}
+
+fn build_stars_search_url(stars: &str) -> String {
+    format!(
+        "{}?q=stars:>={}&sort=stars&order=desc",
+        BASE_URL, stars
+    )
+}
+
+fn build_random_repos_url() -> String {
+    format!("{}/?q=stars:>=1&sort=updated&order=desc", BASE_URL)
+}
+
+
+fn process_search_results(search_results: SearchResults) -> Vec<String> {
+    search_results.items.iter().enumerate().map(|(index, repo)| {
+        format!("{}. {} - {} stars. URL: {}", index + 1, repo.name, repo.stargazers_count, repo.html_url)
+    }).collect()
+}
+
 
 #[tokio::main]
 async fn main() -> Result<(), reqwest::Error> {
@@ -37,104 +65,62 @@ async fn main() -> Result<(), reqwest::Error> {
         io::stdin().read_line(&mut choice).expect("Failed to read line");
 
         match choice.trim() {
-            "1" => search_by_language(&client).await?,
-            "2" => search_by_stars(&client).await?,
-            "3" => fetch_random_repos(&client).await?,
+            "1" => {
+                let language = get_user_input("Enter the programming language:");
+                let url = build_language_search_url(&language);
+                let search_results = fetch_repos(&client, &url).await?;
+                let formatted_results = process_search_results(search_results);
+                display_results(&formatted_results);
+            },
+            "2" => {
+                let stars = get_user_input("Enter the minimum number of stars:");
+                let url = build_stars_search_url(&stars);
+                let search_results = fetch_repos(&client, &url).await?;
+                let formatted_results = process_search_results(search_results);
+                display_results(&formatted_results);
+            },
+            "3" => {
+                let url = build_random_repos_url();
+                let search_results = fetch_repos(&client, &url).await?;
+                let formatted_results = process_search_results(search_results);
+                display_results(&formatted_results);
+            },
             "4" => {
                 println!("Exiting...");
                 break;
             },
             _ => println!("Invalid choice, please try again."),
         }
+        
     }
 
     Ok(())
 }
 
-async fn search_by_language(client: &reqwest::Client) -> Result<(), reqwest::Error> {
-    let mut language = String::new();
-    println!("Enter the programming language:");
-    io::stdin().read_line(&mut language).expect("Failed to read line");
-    let encoded_language = utf8_percent_encode(language.trim(), FRAGMENT);
-
-    println!("Loading....................................................");
-
-    let url = format!(
-        "https://api.github.com/search/repositories?q=language:{}&sort=stars&order=desc",
-        encoded_language
-    );
-
-    let response = client.get(url)
-        .header("User-Agent", "request")
-        .send().await?;
-
-    let search_results: SearchResults = response.json().await?;
-    println!();
-    println!("Top 3 repositories by language:");
-    println!("------------------------------------------------------------");
-    for (index, repo) in search_results.items.iter().take(3).enumerate() {
-        println!("{}. {} - {} stars. URL: {}\n", index + 1, repo.name, repo.stargazers_count, repo.html_url);
-    }
-    println!("------------------------------------------------------------");
-    println!();
-    println!("Main menu in 10 seconds.................");
-    sleep(Duration::from_secs(10)).await;
-    Ok(())
+async fn fetch_repos(client: &reqwest::Client, url: &str) -> Result<SearchResults, reqwest::Error> {
+    let response = client.get(url).header("User-Agent", "request").send().await?;
+    response.json().await
 }
 
-async fn search_by_stars(client: &reqwest::Client) -> Result<(), reqwest::Error> {
-    let mut stars = String::new();
-    println!("Enter the minimum number of stars:");
-    io::stdin().read_line(&mut stars).expect("Failed to read line");
-
-    println!("Loading....................................................");
-
-    let url = format!(
-        "https://api.github.com/search/repositories?q=stars:>={}&sort=stars&order=desc",
-        stars.trim()
-    );
-
-    let response = client.get(url)
-        .header("User-Agent", "request")
-        .send().await?;
-
-    let search_results: SearchResults = response.json().await?;
-    println!();
-    println!("Top 5 repositories by stars:");
-    println!("------------------------------------------------------------");
-    for (index, repo) in search_results.items.iter().take(5).enumerate() {
-        println!("{}. {} - {} stars. URL: {}\n", index + 1, repo.name, repo.stargazers_count, repo.html_url);
-    }
-    println!("------------------------------------------------------------");
-    println!();
-    println!("Main menu in 10 seconds.................");
-    sleep(Duration::from_secs(10)).await;
-    Ok(())
+fn get_user_input(prompt: &str) -> String {
+    println!("{}", prompt);
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).expect("Failed to read line");
+    input.trim().to_string()
 }
 
-async fn fetch_random_repos(client: &reqwest::Client) -> Result<(), reqwest::Error> {
-    let mut rng = rand::thread_rng();
 
-    println!("Loading....................................................");
-
-    let url = "https://api.github.com/search/repositories?q=stars:>=1&sort=updated&order=desc";
-    let response = client.get(url)
-        .header("User-Agent", "request")
-        .send().await?;
-
-    let mut search_results: SearchResults = response.json().await?;
-
-    search_results.items.shuffle(&mut rng);
-
-    println!();
-    println!("5 random repositories:");
-    println!("------------------------------------------------------------");
-    for (index, repo) in search_results.items.iter().take(5).enumerate() {
-        println!("{}. {} - {} stars. URL: {}\n", index + 1, repo.name, repo.stargazers_count, repo.html_url);
+fn display_results(results: &[String]) {
+    for result in results {
+        println!("{}", result);
     }
-    println!("------------------------------------------------------------");
-    println!();
-    println!("Main menu in 10 seconds.................");
-    sleep(Duration::from_secs(10)).await;
-    Ok(())
 }
+
+
+
+  
+
+  
+
+
+  
