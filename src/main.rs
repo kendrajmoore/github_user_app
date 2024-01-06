@@ -1,5 +1,5 @@
 use std::io;
-use std::io::Write;
+
 use github_user_app::{build_language_search_url,build_random_repos_url, build_stars_search_url, fetch_repos, MyError, process_search_results};
 
 
@@ -8,11 +8,11 @@ async fn main() -> Result<(), MyError> {
     let client = reqwest::Client::new();
 
     loop {
-        println!("GitHub Finder Menu by Numberes:");
+        println!("GitHub Finder Menu by Numbers:");
         println!("The goal is to introduce you to new technologies");
-        println!("1. Enter (1) search for repos by language");
-        println!("2. Enter (2) search for top repos by stars");
-        println!("3. Enter (3) to get 5 random repos");
+        println!("1. Enter (1) search for top open source repos by language");
+        println!("2. Enter (2) search for top open source repos by stars");
+        println!("3. Enter (3) to discover random open source repos");
         println!("4. Exit");
 
         let mut choice = String::new();
@@ -53,14 +53,12 @@ async fn main() -> Result<(), MyError> {
 }
 
 fn get_user_input(prompt: &str) -> String {
-    print!("{}", prompt);
-    io::stdout().flush().unwrap();  
-
+    println!("{}", prompt);
     let mut input = String::new();
     io::stdin().read_line(&mut input).expect("Failed to read line");
-
-    input.trim().to_lowercase()
+    input.trim().to_string()
 }
+
 
 fn display_results(results: &[String]) {
     for result in results {

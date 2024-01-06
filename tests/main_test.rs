@@ -50,13 +50,15 @@ mod tests {
                 language: Some("Python".to_string()),
             },
         ];
-
+    
         let search_results = SearchResults { items: repos };
         let formatted_results = process_search_results(search_results);
-
-        assert_eq!(formatted_results.len(), 2);
-        assert!(formatted_results[0].contains("Repo1"));
-        assert!(formatted_results[1].contains("Repo2"));
+        assert_eq!(formatted_results.len(), 4);
+        assert_eq!(formatted_results[0], "--------------");
+        assert!(formatted_results[1].contains("Repo1"));
+        assert!(formatted_results[2].contains("Repo2"));
+        assert_eq!(formatted_results[3], "--------------");
     }
+    
 
 }
